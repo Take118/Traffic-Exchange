@@ -5,10 +5,10 @@
 $db_host = 'localhost';
 
 //Database username:
-$db_user = 'cs2_demo';
+$db_user = 'root';
 
 //Database password:
-$db_pwd = 'demo';
+$db_pwd = '';
 
 //Database name:
 $db_name = 'cs2_paidauto';
@@ -33,30 +33,30 @@ $mem_header = $_SERVER['DOCUMENT_ROOT'] . '/header.php';
 
 //Members footer root loaction:
 $mem_footer = $_SERVER['DOCUMENT_ROOT'] . '/footer.php';
-if(!function_exists('getdbconfvars')){
-	function getdbconfvars(){
+if (!function_exists('getdbconfvars')) {
+	function getdbconfvars()
+	{
 		global $db_host, $db_name, $db_user, $db_pwd;
-		@mysql_connect($db_host, $db_user, $db_pwd);
-		@mysql_select_db($db_name);
+		$db = @mysqli_connect($db_host, $db_user, $db_pwd);
+		@$db->select_db($db_name);
 		$confvars = array();
 
-		$confrs = mysql_query("SELECT * FROM adminprops");
-		if(mysql_num_rows($confrs) > 0){
-			while ($conf = mysql_fetch_array($confrs)){
+		$confrs = $db->query("SELECT * FROM adminprops");
+		if ($confrs->num_rows > 0) {
+			while ($conf = $confrs->fetch_array()) {
 				$confvars[$conf['field']] = stripslashes($conf['value']);
 			}
-		}else{
+		} else {
 			exit('There is some error in installation.<br>Please Re-install the script');
 		}
-		//mysql_close();
+		$db->close();
 		return $confvars;
-
 	}
 }
-if(!defined('NEWINSTALLATION')){
+if (!defined('NEWINSTALLATION')) {
 	@extract(getdbconfvars());
-	$siteurl = str_replace('http://','',$self_url);
-	$siteurl = str_replace('https://','',$siteurl);
+	$siteurl = str_replace('http://', '', $self_url);
+	$siteurl = str_replace('https://', '', $siteurl);
 
 
 	//Email headers
@@ -67,4 +67,3 @@ if(!defined('NEWINSTALLATION')){
 
 	@session_name("TrafExchange");
 }
-?>

@@ -1,12 +1,16 @@
 <?php
+
+global $db;
+$db = new mysqli();
+
 session_start();
-//session_register("sess_name");
-//session_register("sess_passwd");
-//session_register("sess_data");
+//$_SESSION("sess_name");
+//$_SESSION("sess_passwd");
+//$_SESSION("sess_data");
 include("vars.php");
 include("headfoot.php");
-mysql_connect($db_host, $db_user, $db_pwd);
-mysql_select_db($db_name);
+$db->connect($db_host, $db_user, $db_pwd);
+$db->select_db($db_name);
 if ($_POST['dosubmit'] == 'yes') {
 	$error = "no";
 	$name = trim($_POST['name']);
@@ -21,7 +25,7 @@ if ($_POST['dosubmit'] == 'yes') {
 	if ($email == "") {
 		$error = "yes";
 		$why = $why . "Your email is blank!<br>";
-	} elseif (!ereg('@', $email) || !ereg('.', $email)) {
+	} elseif (!preg_match('/@/i', $email) || !preg_match('/./i', $email)) {
 		$error = "yes";
 		$why = $why . "Your email is invalid!<br>";
 	}
@@ -30,8 +34,8 @@ if ($_POST['dosubmit'] == 'yes') {
 			$error = "yes";
 			$why = $why . "Your $title ID number wasn't a valid number!<br>";
 		} else {
-			$get_mem = mysql_query("SELECT * FROM user WHERE id=$myid");
-			if (mysql_num_rows($get_mem) == 0) {
+			$get_mem = $db->query("SELECT * FROM user WHERE id=$myid");
+			if ($get_mem->num_rows == 0) {
 				$error = "yes";
 				$why = $why . "Your $title ID number wasn't found in our database!<br>";
 			}
@@ -44,32 +48,32 @@ if ($_POST['dosubmit'] == 'yes') {
 	if ($message == "") {
 		$error = "yes";
 		$why = $why . "You must enter your comments!<br>";
-	} elseif (ereg("<", $message) || ereg(">", $message)) {
+	} elseif (preg_match("/</i", $message) || preg_match("/>/i", $message)) {
 		$error = "yes";
 		$why = $why . "Your message must not contain HTML characters!<br>";
 	}
 	if ($error == 'no') {
-		@mail($private_sys_email, "$title Contact Request", "Send Reply To: $email\n\nName: $name\n$title Member ID: $myid\n\nSubject:\n$subject\n\nMessage:\n$message\n\n\nSubmitters IP Address: ".$_SERVER['REMOTE_ADDR']."\nUsing Web Browser: " . $_SERVER['HTTP_USER_AGENT'], $email_headers);
+		@mail($private_sys_email, "$title Contact Request", "Send Reply To: $email\n\nName: $name\n$title Member ID: $myid\n\nSubject:\n$subject\n\nMessage:\n$message\n\n\nSubmitters IP Address: " . $_SERVER['REMOTE_ADDR'] . "\nUsing Web Browser: " . $_SERVER['HTTP_USER_AGENT'], $email_headers);
 		uheader();
-                                echo("<h4>Contact $title</h4>");
+		echo ("<h4>Contact $title</h4>");
 		if ($_SESSION['sess_name'] != "" && $_SESSION['sess_passwd'] != "") {
 			members_main_menu($members_menu);
 		}
-		echo("<p>Your contact request has been received! $title Admin will contact you ASAP via the email you provided: <b>$email</b>.</p>");
+		echo ("<p>Your contact request has been received! $title Admin will contact you ASAP via the email you provided: <b>$email</b>.</p>");
 		ufooter();
-		mysql_close;
+		$db->close();
 		exit;
 	}
 }
 uheader();
-                                echo("<h4>Contact $title</h4>");
+echo ("<h4>Contact $title</h4>");
 if ($_SESSION['sess_name'] != "" && $_SESSION['sess_passwd'] != "") {
 	members_main_menu($members_menu);
 }
 if ($error == 'yes') {
-	echo("<p align=center><b>Please correct the following:</b><br><font color=red><b>$why</b></font><br></p>");
+	echo ("<p align=center><b>Please correct the following:</b><br><font color=red><b>$why</b></font><br></p>");
 }
-echo("<p><table border=\"0\" style=\"padding-left: 10px;\">
+echo ("<p><table border=\"0\" style=\"padding-left: 10px;\">
 <form name=\"contact\" method=\"post\">
   <tr>
     <td>Name: </td>
@@ -99,6 +103,5 @@ echo("<p><table border=\"0\" style=\"padding-left: 10px;\">
 </table>
 </form></p>");
 ufooter();
-mysql_close;
+$db->close();
 exit;
-?>

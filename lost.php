@@ -1,16 +1,21 @@
 <?php
+
+global $db;
+$db= new mysqli();
+
 include("vars.php");
 include("headfoot.php");
-mysql_connect($db_host, $db_user, $db_pwd);
-mysql_select_db($db_name);
+$db->connect($db_host, $db_user, $db_pwd);
+$db->select_db($db_name);
 if ($_POST['form'] == 'sent' && $_POST['email'] != "") {
 	$email = trim($_POST['email']);
-	$res = mysql_query("select * from user where email='$email'");
-	if (mysql_num_rows($res) == 1) {
-		$admail = mysql_result(mysql_query("select value from admin where field='email'"), 0);
-		$uid = mysql_result($res, 0, "id");
-		$passwd = mysql_result($res, 0, "passwd");
-		$act = mysql_result($res, 0, "ac");
+	$res = $db->query("select * from user where email='$email'");
+	if ($res->num_rows == 1) {
+		$admail = ($db->query("select value from admin where field='email'"))->fetch_field();
+		$res->data_seek(0);
+		$uid = $res->fetch_fields()["id"];
+		$passwd = $res->fetch_fields()["passwd"];
+		$act = $res->fetch_fields()["ac"];
 		if ($act != 0) {
 			$actcode = "Your account is not yet activated, please click the link below to activate your account!\n\n$self_url" . "activate.php?ac=$act&i=$uid\n\n<a href=\"$self_url" . "activate.php?ac=$act&i=$uid\">AOL Users</a>";
 		}
@@ -18,13 +23,13 @@ if ($_POST['form'] == 'sent' && $_POST['email'] != "") {
 		uheader();
 		echo("<h4>Password/Activation Retrieval</h4><p>Your details were sent to your registered email address:<br><b>$email</b></p>");
 		ufooter();
-		mysql_close;
+		$db->close();
 		exit;
 	} else {
 		uheader();
 		echo("<h4>Password/Activation Retrieval</h4><p>Your email address was not found!</p>");
 		ufooter();
-		mysql_close;
+		$db->close();
 		exit;
 	}
 } else {
@@ -33,7 +38,7 @@ if ($_POST['form'] == 'sent' && $_POST['email'] != "") {
 	echo("<p>Enter your e-mail address in the field below and press '<b>Send Password</b>'.</font></p>");
 	echo("<p><form action=$self_url" . "lost.php method=post><input type=hidden name=form value=sent><input type=text name=email class=webforms> <input type=submit value=\" Send Password \" style=\"font-size: 11px; padding: 2px;\"></form></p>");
 	ufooter();
-	mysql_close;
+	$db->close();
 	exit;
 }
 ?>
